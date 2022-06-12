@@ -1,8 +1,9 @@
-import os, shutil, subprocess
+import os, shutil, subprocess, logging
 
 class FileManagement:
 
     def __init__(self, current_time):
+        self.logger = logging.getLogger("AegisFM")
         self.current_time = current_time
         self.staging_path = f"/tmp/aegis/{current_time}"
         self.snapshot_path = "/Users/david/work/aigis/aegis/"
@@ -11,6 +12,7 @@ class FileManagement:
         return
     
     def stage_file_for_backup(self, filename, hash):
+        self.logger.debug(f)
         path = f"{self.staging_path}/{hash[0:2]}/{hash[2:4]}/"
         os.makedirs(path, exist_ok=True)
         shutil.copy(filename, f'{path}/{hash}')
@@ -19,5 +21,9 @@ class FileManagement:
     def create_snapshot(self):
         if self.changed_files > 0:
             test = subprocess.Popen(f"cd {self.staging_path} && gtar cf - . | pigz > {self.snapshot_path}/{self.current_time}.tar.gz", shell=True)
+
     def delete_snapshot(self):
         return
+
+    def get_snapshot_details(self):
+        self.logger.info(f"{self.changed_files} files were updated or new.")

@@ -1,8 +1,9 @@
-import json, sys
+import json, logging
 
 class AegisDB:
 
     def __init__(self, db_file):
+        self.logger = logging.getLogger("AegisDB")
         self.db_file = db_file
         self.database = {}
         self.current_backup = 0
@@ -12,14 +13,14 @@ class AegisDB:
         try:
             self.load()
         except Exception as err:
-            print(f"[AegisDB] Couldn't load database, starting fresh! Error: {err}")
+            self.logger.error(f"Couldn't load database, starting fresh! Error: {err}")
             self.database = {"files": {}, "backups": []}
 
     def load(self):
         try:
             with open(self.db_file, "r+") as file:
                 self.database = json.load(file)
-            print(f"[AegisDB] Successfully loaded {self.db_file}")
+            self.logger.debug(f"Successfully loaded DB file: {self.db_file}")
         except:
             raise # unsure where to handle DB loading errors; letting initialize error out currently
         
@@ -28,7 +29,7 @@ class AegisDB:
             with open(self.db_file, "w+") as file:
                 json.dump(self.database, file, indent=4, sort_keys=True)
         except Exception as err:
-            print(f"[AegisDB] Failed to save database on quit. There may be missing data on next start. Err: {err}")
+            self.logger.error(f"Failed to save database on quit. There may be missing data on next start. Err: {err}")
             print(self.database)
 
     def get(self):

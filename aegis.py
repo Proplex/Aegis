@@ -1,5 +1,5 @@
 #!/bin/python3
-import hashlib, os, shutil, database, file_management
+import hashlib, os, shutil, database, file_management, logging
 from multiprocessing import Pool
 from time import time
 
@@ -21,6 +21,7 @@ def stage_file_for_backup(file_name, hash):
     return True
 
 def aegis(world_directory, db, fm):
+    logger = logging.getLogger("[AegisCore]")
     file_list = []
 
 
@@ -37,27 +38,30 @@ def aegis(world_directory, db, fm):
     for index, filename in enumerate(file_list):
         if not db.file_exists(filename):
             # first time seeing file, let's create an entry
-            print(f"[AegisSnapshot] {filename} is new!")
+            logger.debug(f"{filename} is new!")
             db.create_file(filename, results[index])
             fm.stage_file_for_backup(filename, results[index])
         else:
             # only copy the file if it's new
             if db.get_latest_file_hash(filename) == results[index]:
-                print(f"[AegisSnapshot] {filename} is the same.")
+                logger.debug(f"{filename} is the same.")
             else:
                 fm.stage_file_for_backup(filename, results[index])
                 db.update_file(filename, results[index])
-                print(f"[AegisSnapshot] {filename} has changed!")
+                logger.debug(f"{filename} has changed!")
 
         
 
 
 if __name__ == "__main__":
     current_time = int(time())
+    log_level = os.environ.get('LOGLEVEL', 'INFO').upper()
+    logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',level=log_level)
     db = database.AegisDB("aegis_db.json")
     fm = file_management.FileManagement(current_time)
     db.record_backup(current_time)
     aegis("minecraft/world", db, fm)
     fm.create_snapshot()
+    fm.get_snapshot_details()
     db.commit_backup()
     db.save()
