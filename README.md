@@ -1,4 +1,4 @@
-# ![Aegis](https://f.ipv7.sh/dymran.png) Aegis: _A general purpose delta snapshot backup utility_
+# ![Aegis](https://f.ipv7.sh/dymran.png) Aegis: _A snapshot backup utility for Minecraft_
 
 The idea for Aegis started around a desire to be able to backup Minecraft server
 maps with deltas from the last backup, as a way of decreasing space utilization

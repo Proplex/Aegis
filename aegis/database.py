@@ -1,10 +1,10 @@
 import json, logging
 
-class AegisDB:
+class Database:
 
-    def __init__(self, db_file):
+    def __init__(self, config):
         self.logger = logging.getLogger("AegisDB")
-        self.db_file = db_file
+        self.db_file = config.DATABASE_PATH
         self.database = {}
         self.current_backup = 0
         self.initialize()
