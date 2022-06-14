@@ -1,0 +1,6 @@
+---
+database_path: "/Users/david/work/aigis-staging/aegis_db.json"
+folders_to_backup:
+  - "/Users/david/work/aigis-staging/minecraft/"
+backup_storage_path: "/Users/david/work/aigis-staging/backups"
+log_level: INFO

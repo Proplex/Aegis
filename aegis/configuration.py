@@ -1,9 +1,17 @@
-
+import yaml, logging
 
 class Configuration:
-    LOG_LEVEL = True
-    FOLDERS_TO_BACKUP = ["/Users/david/work/aigis-staging/minecraft"]
-    BACKUP_STORAGE_PATH = "/Users/david/work/aigis-staging/backups/"
-    DATABASE_PATH = "/Users/david/work/aigis-staging/aegis_db.json"
-    def __init__(self):
-        return
+
+    def __init__(self, config_file):
+        self.logger = logging.getLogger("AegisConfig")
+        self.config_map = ""
+        with open(config_file, 'r') as file:
+            self.config_map = yaml.safe_load(file)
+            self.logger.info("Successfully loaded configuration!")
+            self.logger.debug(f"Configuration: {self.config_map}")
+
+
+    def get(self):
+        return self.config_map
+
+

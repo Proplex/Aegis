@@ -6,7 +6,7 @@ class FileManagement:
         self.logger = logging.getLogger("AegisFM")
         self.current_time = current_time
         self.staging_path = f"/tmp/aegis/{current_time}"
-        self.snapshot_path = config.BACKUP_STORAGE_PATH
+        self.snapshot_path = config["backup_storage_path"]
         self.changed_files = 0
         os.makedirs(self.staging_path, exist_ok=True)
         return

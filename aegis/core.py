@@ -7,7 +7,7 @@ from time import time
 
 def start(current_time, db, fm, config):
     db.record_backup(current_time)
-    aegis(config.FOLDERS_TO_BACKUP, db, fm)
+    aegis(config["folders_to_backup"][0], db, fm)
     fm.create_snapshot()
     fm.get_snapshot_details()
     db.commit_backup()
@@ -33,10 +33,11 @@ def stage_file_for_backup(file_name, hash):
 
 
 def aegis(world_directory, db, fm):
-    world_directory = world_directory[0]
-    logger = logging.getLogger("[AegisCore]")
+    logger = logging.getLogger("AegisCore")
+    logger.debug(f"Scanning '{world_directory}' for changes...")
     file_list = []
     for (dirpath, dirs, files) in os.walk(world_directory):
+        logger.debug(f"Walking path '{dirpath}' for files.")
         for name in files:
             file_list.append(os.path.join(dirpath, name))
 

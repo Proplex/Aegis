@@ -4,7 +4,7 @@ class Database:
 
     def __init__(self, config):
         self.logger = logging.getLogger("AegisDB")
-        self.db_file = config.DATABASE_PATH
+        self.db_file = config["database_path"]
         self.database = {}
         self.current_backup = 0
         self.initialize()
