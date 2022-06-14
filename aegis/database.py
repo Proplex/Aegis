@@ -1,4 +1,4 @@
-import json, logging
+import json, logging, errno
 
 class Database:
 
@@ -12,9 +12,24 @@ class Database:
     def initialize(self):
         try:
             self.load()
+        except OSError as err:
+            if err.errno == errno.ENOENT:
+                self.logger.info(f"Aegis database doesn't exist at {self.db_file}, creating now.")
+                self.new_database()
+            elif err.errno == errno.EACCES:
+                self.logger.error(f"Permission denied when accessing Aegis database at {self.db_file}. Error: {err}")
+                raise
+        except json.JSONDecodeError as err:
+            self.logger.error(f"Error while parsing Aegis database. Error: {err}")
+            raise
         except Exception as err:
-            self.logger.error(f"Couldn't load database, starting fresh! Error: {err}")
-            self.database = {"files": {}, "backups": []}
+            self.logger.error(f"Uknown error while trying to load Aegis database. Error: {err}")
+            raise
+
+
+    def new_database(self):
+        self.logger.info("Creating new database")
+        self.database = {"files": {}, "backups": []}
 
     def load(self):
         try:
@@ -29,7 +44,7 @@ class Database:
             with open(self.db_file, "w+") as file:
                 json.dump(self.database, file, indent=4, sort_keys=True)
         except Exception as err:
-            self.logger.error(f"Failed to save database on quit. There may be missing data on next start. Err: {err}")
+            self.logger.error(f"Failed to save database. There may be missing data on next start. Err: {err}")
             print(self.database)
 
     def get(self):
