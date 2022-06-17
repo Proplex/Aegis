@@ -67,8 +67,11 @@ class Database:
             return True
         return False
 
+    def list_files(self):
+        return self.database["files"].keys()
+
     # gets the latest time when a snapshot was taken
-    def get_latest_backup(self):
+    def get_latest_snapshot(self):
         self.database["backups"].sort() # get the last as that'll be the highest epoch count; meaning it's the newest
         return self.database["backups"][-1]
 
