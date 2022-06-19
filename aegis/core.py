@@ -1,15 +1,10 @@
-import hashlib, os, shutil, aegis.database as database, aegis.file_management as file_management, logging
+import os, shutil, aegis.database as database, aegis.file_management as file_management, logging
 import multiprocessing
 from multiprocessing import Pool, freeze_support
 from time import time
+from aegis import utilities
 
 
-def md5(file_name):
-    hash_md5 = hashlib.md5()
-    with open(file_name, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
 
 class Core:
     BACKUP = "backup"
@@ -17,7 +12,7 @@ class Core:
 
     def __init__(self, current_time, config, command):
         self.logger = logging.getLogger("AegisCore")
-        self.logger.debug(f"Recived command: {command}")
+        self.logger.debug(f"Received command: {command}")
         self.fm = file_management.FileManagement(current_time, config)
         self.db = database.Database(config)
         if command == Core.BACKUP:
@@ -31,16 +26,6 @@ class Core:
         elif command == Core.RESTORE:
             self.logger.info("Starting restore.")
             self.restore_most_recent()
-
-
-    def stage_file_for_backup(self, file_name, hash):
-        hash_part1 = hash[0:2]
-        hash_part2 = hash[2:4]
-        path = f'/tmp/aegis/{hash_part1}/{hash_part2}/'
-        os.makedirs(path, exist_ok=True)
-        shutil.copy(file_name, f'{path}/{hash}')
-        return True
-
 
     def restore_file(self, filename, timestamp):
         return
@@ -56,7 +41,7 @@ class Core:
                 restore_map[archive].append((self.db.get_latest_file_hash(file), file))
             else:
                 restore_map[archive].append((self.db.get_latest_file_hash(file), file))
-        self.fm.restore_snapshot(restore_map)
+        self.fm.restore(restore_map)
 
 
     def backup(self, world_directory):
@@ -69,7 +54,7 @@ class Core:
 
         results = []
         with Pool(5) as p:
-            results = p.map(md5, file_list)
+            results = p.map(utilities.md5, file_list)
 
 
         for index, filename in enumerate(file_list):

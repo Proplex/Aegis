@@ -1,4 +1,5 @@
 import os, shutil, subprocess, logging
+from aegis import utilities
 
 class FileManagement:
 
@@ -29,30 +30,40 @@ class FileManagement:
     def get_snapshot_details(self):
         self.logger.info(f"{self.changed_files} files were updated or new.")
 
-    def restore_snapshot(self, restore_map):
+    def restore(self, restore_map):
         # FIXME
         # this is insanely ugly and mostly a PoC still; need to flesh out a more efficient and elegant way
-        for archive in restore_map.keys():
+        for snapshot in restore_map.keys():
             files_needed = []
             directories_to_make = []
             hash_to_name_matrix = []
-            for file in restore_map[archive]:
-                self.logger.debug(f"Restoring file {file}.")
-                hash = file[0]
-                filename = file[1]
+            for file in restore_map[snapshot]:
+                self.logger.info(f"Restoring file {file}.")
+                hash, filename = file
                 path_in_archive = f"./{hash[0:2]}/{hash[2:4]}"
                 files_needed.append(f"{path_in_archive}/{hash}")
-                directories_to_make.append("/".join(filename.split("/")[0:-1]))
+                destination_folder = "/".join(filename.split("/")[0:-1])
+                if destination_folder not in directories_to_make:
+                    directories_to_make.append(destination_folder)
                 hash_to_name_matrix.append((f"{path_in_archive[2:]}/{hash}", filename))
-            command = f"cd {self.staging_path} && gtar -xzvf {self.snapshot_path}/{archive}.tar.gz {' '.join(files_needed)}" 
-            self.logger.debug(f"Running command: {command}")
-            test = subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            test.wait()
-            command_mkdir = f"mkdir -p {' '.join(directories_to_make)}"
-            self.logger.debug(f"Running command: {command_mkdir}")
-            test = subprocess.Popen(command_mkdir, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            test.wait()
+            self.extract_from_snapshot(snapshot, files_needed)
+            self.create_destination_restore_folders(directories_to_make)
+
             for file in hash_to_name_matrix:
-                command_copy = f"cp {self.staging_path}/{file[0]} {file[1]}"
-                self.logger.debug(f"Running command: {command_copy}")
-                test = subprocess.Popen(command_copy, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                hash, destination = file
+                temp_location = f"{self.staging_path}/{hash}"
+                self.restore_file(temp_location, destination)
+               
+
+    
+    def extract_from_snapshot(self, snapshot, files):
+        command = f"cd {self.staging_path} && gtar -xzvf {self.snapshot_path}/{snapshot}.tar.gz {' '.join(files)}" 
+        utilities.run_command(command).wait()
+    
+    def create_destination_restore_folders(self, folders):
+        command_mkdir = f"mkdir -p {' '.join(folders)}"
+        utilities.run_command(command_mkdir).wait()
+
+    def restore_file(self, file, destination):
+        command_copy = f"cp {file} {destination}"
+        utilities.run_command(command_copy)
