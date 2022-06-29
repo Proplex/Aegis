@@ -91,3 +91,17 @@ class Database:
     def get_latest_file_timestamp(self, filename):
         return self.database["files"][filename]["last_changed"][0]
     
+    def get_pit_file_hash(self, filename, timestamp):
+        backups = self.database["files"][filename]["backups"]
+        for b_timestamp, hash in backups.items():
+            if timestamp >= int(b_timestamp):
+                return hash
+        return None
+
+
+    def get_pit_file_timestamp(self, filename, timestamp):
+        backups = self.database["files"][filename]["backups"]
+        for b_timestamp, hash in backups.items():
+            if timestamp >= int(b_timestamp):
+                return b_timestamp
+        return None

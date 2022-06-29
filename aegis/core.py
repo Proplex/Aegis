@@ -25,7 +25,8 @@ class Core:
             self.db.save()
         elif command == Core.RESTORE:
             self.logger.info("Starting restore.")
-            self.restore_most_recent()
+            #self.restore_most_recent()
+            self.restore_from_point_in_time(1655136990)
 
     def restore_file(self, filename, timestamp):
         return
@@ -41,6 +42,22 @@ class Core:
                 restore_map[archive].append((self.db.get_latest_file_hash(file), file))
             else:
                 restore_map[archive].append((self.db.get_latest_file_hash(file), file))
+        self.fm.restore(restore_map)
+
+    
+    def restore_from_point_in_time(self, time):
+        restore_map = {}
+        for file in self.db.list_files():
+            archive = self.db.get_pit_file_timestamp(file, time)
+            if archive is None:
+                self.logger.debug(f"{file} did not exist at this point, skipping.")
+                continue
+            if archive not in restore_map:
+                self.logger.debug(f"Adding archive {archive} to RestoreMap")
+                restore_map[archive] = []
+                restore_map[archive].append((self.db.get_pit_file_hash(file, time), file))
+            else:
+                restore_map[archive].append((self.db.get_pit_file_hash(file, time), file))
         self.fm.restore(restore_map)
 
 
